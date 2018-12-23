@@ -2,7 +2,9 @@ import paho.mqtt.client as mqtt
 class MqttConnector:
     'Responsible for mqtt pub/sub'
     client = None
+    onMessageReceived = None
     topics = []
+
 
     # The callback for when the client receives a CONNACK response from the server.
     def on_connect(self, client, userdata, flags, rc):
@@ -19,13 +21,15 @@ class MqttConnector:
 
     def on_message(self, client, userdata, msg):
         print(msg.topic+" "+str(msg.payload))
+        self.onMessageReceived(msg.topic, msg.payload)
 
     def updateSubscriptions(self, topics):
         self.topics = topics
         self.client.reconnect()
 
 
-    def __init__(self):
+    def __init__(self, onMessageReceived):
+        self.onMessageReceived = onMessageReceived
         self.client = mqtt.Client()
         self.client.on_connect = self.on_connect
         self.client.on_message = self.on_message

@@ -2,8 +2,9 @@ from Crypto.PublicKey import RSA
 from MqttConnector import MqttConnector
 from time import sleep
 import uuid
+import gen.messages_pb2 as pb_msg
 
-def generateKeyPair():
+def generateKeyPair(): 
     key = RSA.generate(2048)
     private_key = key.export_key()
     # file_out = open("private.pem", "wb")
@@ -14,11 +15,14 @@ def generateKeyPair():
     # file_out.write(public_key)
     return (public_key, private_key)
 
+def onMessageReceived(topic, message):
+    print("Msg receieved:\n>" + str(message) + "on topic:\n>" + str(topic))
+
 pairingTopics = []
 keyPair = generateKeyPair()
 print(keyPair)
 
-mqttConnector = MqttConnector()
+mqttConnector = MqttConnector(onMessageReceived)
 sleep(2)
 
 def openForPairing():
@@ -30,5 +34,15 @@ def openForPairing():
 def printPairingQR(pairingId):
     print("Now listening for new paring on: "+pairingId)
 
-openForPairing()
+pairConfirm = pb_msg.PairConfirm()
+pairConfirm.receiving_topic = "test"
+serializedMessage = pairConfirm.SerializeToString()
+print(serializedMessage)
+
+pairConfirm2 = pb_msg.PairConfirm()
+pairConfirm2.receiving_topic = ""
+pairConfirm2.ParseFromString(serializedMessage)
+print("deserialized topic :" + str(pairConfirm2.receiving_topic))
+
+#openForPairing()
 sleep(10)
