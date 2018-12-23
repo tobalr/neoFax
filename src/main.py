@@ -15,11 +15,14 @@ def generateKeyPair():
     # file_out.write(public_key)
     return (public_key, private_key)
 
+def onMessageReceived(topic, message):
+    print("Msg receieved:\n>" + str(message) + "on topic:\n>" + str(topic))
+
 pairingTopics = []
 keyPair = generateKeyPair()
 print(keyPair)
 
-mqttConnector = MqttConnector()
+mqttConnector = MqttConnector(onMessageReceived)
 sleep(2)
 
 def openForPairing():
