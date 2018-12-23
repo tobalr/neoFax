@@ -1,4 +1,5 @@
 import paho.mqtt.client as mqtt
+import paho.mqtt.publish as publish
 class MqttConnector:
     'Responsible for mqtt pub/sub'
     client = None
@@ -44,3 +45,7 @@ class MqttConnector:
 
     def connect(self):
         self.client.connect("iot.eclipse.org", 1883, 60)
+
+
+    def publish(self, channel, message):
+        publish.single(channel, message, hostname="iot.eclipse.org")

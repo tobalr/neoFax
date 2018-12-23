@@ -3,9 +3,10 @@ import paho.mqtt.publish as publish
 from Crypto.PublicKey import RSA
 import uuid
 from MqttConnector import MqttConnector
+import gen.messages_pb2 as pb_msg
 
-pairPath="neoFax/pair/"
-pairId = sys.argv[1]
+pairPath=""
+pairIdFax = sys.argv[1]
 
 def generateKeyPair():
     key = RSA.generate(2048)
@@ -22,13 +23,21 @@ def onMessageRecieved(topic, message):
     print(topic)
     print(message)
 
+
+
+
 keyPair = generateKeyPair()
-pairingId = str(uuid.uuid4())
+pairIdClient = str(uuid.uuid4())
 
 mqttConnector = MqttConnector(onMessageRecieved)
-mqttConnector.updateSubscriptions([pairingId])
+mqttConnector.updateSubscriptions([pairIdClient])
 
-publish.single(pairPath+pairId, pairingId, hostname="iot.eclipse.org")
+pairRequest = pb_msg.PairRequest()
+pairRequest.receiving_topic = pairIdFax
+pairRequest.pubKey = keyPair[0]
+pairRequestMsg = pairRequest.SerializeToString()
+print(pairRequestMsg)
+mqttConnector.publish(pairIdFax, pairRequestMsg)
 
 while True:
     pass

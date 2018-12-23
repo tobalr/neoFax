@@ -17,32 +17,55 @@ def generateKeyPair():
 
 def onMessageReceived(topic, message):
     print("Msg receieved:\n>" + str(message) + "on topic:\n>" + str(topic))
+    pairRequest = pb_msg.PairRequest()
+    pairRequest.ParseFromString(message)
+    clientChannel = pairRequest.receiving_topic
+    subscribeForIncomming(clientChannel)
+    pubKeyClient = pairRequest.pubKey
+    
+    print("received pub key:" + pubKeyClient)
 
-pairingTopics = []
-keyPair = generateKeyPair()
-print(keyPair)
+    faxChannel = getChannelId()
 
-mqttConnector = MqttConnector(onMessageReceived)
-sleep(2)
+    pairConfirm = pb_msg.PairConfirm()
+    pairConfirm.receiving_topic = faxChannel
+    serializedMessage = pairConfirm.SerializeToString()
+
+    publishPairingConfirm(clientChannel, serializedMessage)
+
+
+def publishPairingConfirm(clientChannel, message):
+    mqttConnector.publish(clientChannel, message)
+
+
+def subscribeForIncomming(clientChannel):
+    knownClientTopics.append(clientChannel)
+    updateSubscriptions()
+
+
+def getChannelId():
+    return str(uuid.uuid4())
+
+def updateSubscriptions():
+    mqttConnector.updateSubscriptions(pairingTopics + knownClientTopics)
 
 def openForPairing():
-    pairingId = str(uuid.uuid4())
+    pairingId = getChannelId()
     pairingTopics.append(pairingId)
-    mqttConnector.updateSubscriptions(pairingTopics)
+    updateSubscriptions()
     printPairingQR(pairingId)
 
 def printPairingQR(pairingId):
     print("Now listening for new paring on: "+pairingId)
 
-pairConfirm = pb_msg.PairConfirm()
-pairConfirm.receiving_topic = "test"
-serializedMessage = pairConfirm.SerializeToString()
-print(serializedMessage)
+knownClientTopics = []
+pairingTopics = []
+keyPair = generateKeyPair()
+print(keyPair)
 
-pairConfirm2 = pb_msg.PairConfirm()
-pairConfirm2.receiving_topic = ""
-pairConfirm2.ParseFromString(serializedMessage)
-print("deserialized topic :" + str(pairConfirm2.receiving_topic))
 
-#openForPairing()
-sleep(10)
+mqttConnector = MqttConnector(onMessageReceived)
+sleep(2)
+
+openForPairing()
+sleep(120)
