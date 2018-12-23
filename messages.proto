@@ -1,0 +1,25 @@
+syntax = "proto3";
+
+message PairRequest {
+  string pubKey = 1;
+  string receiving_topic = 2;
+}
+
+message PairConfirm {
+  string receiving_topic = 1;
+}
+
+message getInfo{}
+
+message FaxInfo {
+  string name = 1;
+  string model = 2;
+}
+
+message ClientInfo{
+  string name = 1;    
+}
+
+message TextMessage{
+  string message = 1;
+}
