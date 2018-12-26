@@ -1,6 +1,8 @@
 import paho.mqtt.client as mqtt
 import paho.mqtt.publish as publish
 
+import CommunicationHelper
+
 KEEPALIVE_SECONDS = 60
 
 PORT = 1883
@@ -22,16 +24,17 @@ class MqttConnector:
         # reconnect then subscriptions will be renewed.
         print("Now listening on: ")
         for topic in self.topics:
-            print("   " + topic)
-            self.client.subscribe(topic)
+            fullTopic = topic + "/#"
+            print("   " + fullTopic)
+            self.client.subscribe(fullTopic)
 
     # The callback for when a PUBLISH message is received from the server.
     def on_message(self, client, userdata, msg):
-        self.onMessageReceived(msg.topic, msg.payload)
-
-    def updateSubscriptions(self, topics):
-        self.topics = topics
-        self.client.reconnect()
+        topicParts = msg.topic.partition("/")
+        print("Message received on topic: ")
+        print(topicParts)
+        msgType = CommunicationHelper.getMsgType(topicParts[2])
+        self.onMessageReceived(topicParts[0], msgType, msg.payload)
 
     def __init__(self, onMessageReceived):
         self.onMessageReceived = onMessageReceived
@@ -42,9 +45,15 @@ class MqttConnector:
         self.connect()
         self.client.loop_start()
 
+    def updateSubscriptions(self, topics):
+        self.topics = topics
+        self.client.reconnect()
+
     def connect(self):
         self.client.connect(HOST, PORT, KEEPALIVE_SECONDS)
 
-    def publish(self, channel, message):
-        print("Publish to channel: " + channel + " Msg:\n" + str(message))
-        publish.single(channel, message, hostname=HOST)
+    def publish(self, channel, message, messageType):
+        topicPostfix = CommunicationHelper.getMsgTopic(messageType)
+        fullChannel = channel + "/" + topicPostfix
+        print("Publish to channel: " + fullChannel + " Msg:\n" + str(message))
+        publish.single(fullChannel, message, hostname=HOST)

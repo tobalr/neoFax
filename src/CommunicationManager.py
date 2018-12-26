@@ -1,4 +1,5 @@
-from CommunicationHelper import generateKeyPair, getCommType, CommType, getChannelId
+import CommunicationHelper
+from CommunicationHelper import generateKeyPair, getMsgType, MsgType, getChannelId
 from Connection import Connection
 from MqttConnector import MqttConnector
 import gen.messages_pb2 as pb_msg
@@ -29,12 +30,16 @@ class CommunicationManager:
     def getAllChannels(self):
         return self.getPairingTopics() + self.getCommunicationChannels()
 
-    def onMessageReceived(self, topic, message):
-        print("Msg received:\n>" + str(message) + "\non topic:\n>" + str(topic))
-
-        messageType = getCommType(topic)
-        if messageType == CommType.PairRequest:
+    def onMessageReceived(self, channel, msgType, message):
+        if msgType == MsgType.PairRequest:
             self.onPairRequestReceieved(message)
+        elif msgType == MsgType.PairConfirm:
+            print("Received a pairing confirmation")
+            pairConfirm = pb_msg.PairConfirm()
+            pairConfirm.ParseFromString(message)
+            txChannel = pairConfirm.receiving_topic
+            rxChannel = channel
+            self.addConnection(rxChannel, txChannel, pairConfirm.pubKey) #ToDo missing pubkey - must be receieved during pair
 
     def onPairRequestReceieved(self, message):
         print("Received a pair request")
@@ -46,7 +51,7 @@ class CommunicationManager:
         pairConfirm = pb_msg.PairConfirm()
         pairConfirm.receiving_topic = rxChannel
         serializedMessage = pairConfirm.SerializeToString()
-        self.mqttConnector.publish(txChannel, serializedMessage)
+        self.mqttConnector.publish(txChannel, serializedMessage, MsgType.PairConfirm)
 
     def openForPairRequests(self):
         print("Open for pair requests")
@@ -62,7 +67,7 @@ class CommunicationManager:
         pairRequest.receiving_topic = rxChannel
         pairRequest.pubKey = self.keyPair[0]
         pairRequestMessage = pairRequest.SerializeToString()
-        self.mqttConnector.publish(pairId, pairRequestMessage)
+        self.mqttConnector.publish(pairId, pairRequestMessage, MsgType.PairRequest)
 
     def subscribeToPairingChannel(self, pairingChannel):
         print("Subscribing to pairing channel=" + pairingChannel)
@@ -71,7 +76,6 @@ class CommunicationManager:
 
     def updateSubscriptions(self):
         self.mqttConnector.updateSubscriptions(self.getAllChannels())
-
 
     def addConnection(self, rxChannel, txChannel, pubKeyClient):
         connection = Connection(rxChannel, txChannel, pubKeyClient)

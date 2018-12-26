@@ -4,13 +4,30 @@ from enum import Enum, auto
 from Crypto.PublicKey import RSA
 
 
-class CommType(Enum):
+class MsgType(Enum):
     PairRequest = auto()
     PairConfirm = auto()
     getInfo = auto()
     FaxInfo = auto()
     ClientInfo = auto()
     TextMessage = auto()
+
+
+stringToType = {"PAIR_REQUEST": MsgType.PairRequest,
+                "PAIR_CONFIRM": MsgType.PairConfirm,
+                "GET_INFO": MsgType.getInfo,
+                "FAX_INFO": MsgType.FaxInfo,
+                "CLIENT_INFO": MsgType.ClientInfo,
+                "TEXT_MESSAGE": MsgType.TextMessage
+                }
+
+typeToString = {MsgType.PairRequest: "PAIR_REQUEST",
+                MsgType.PairConfirm: "PAIR_CONFIRM",
+                MsgType.getInfo: "GET_INFO",
+                MsgType.FaxInfo: "FAX_INFO",
+                MsgType.ClientInfo: "CLIENT_INFO",
+                MsgType.TextMessage: "TEXT_MESSAGE"
+                }
 
 
 def generateKeyPair():
@@ -29,5 +46,10 @@ def getChannelId():
     return str(uuid.uuid4())
 
 
-def getCommType(topic):
-    return CommType.PairRequest
+def getMsgType(topic):
+    return stringToType[topic]
+
+
+def getMsgTopic(msgType):
+    return typeToString[msgType]
+
