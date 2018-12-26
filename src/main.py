@@ -6,9 +6,9 @@ def printPairingQR(pairingId):
     print("Now listening for new paring on: " + pairingId)
 
 
-comms = CommunicationManager()
+communicationManager = CommunicationManager()
 sleep(2)
-pairingId = comms.openNewPairing()
+pairingId = communicationManager.openNewPairing()
 printPairingQR(pairingId)
 
 while True:

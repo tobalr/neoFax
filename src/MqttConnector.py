@@ -1,6 +1,12 @@
 import paho.mqtt.client as mqtt
 import paho.mqtt.publish as publish
 
+KEEPALIVE_SECONDS = 60
+
+PORT = 1883
+
+HOST = "iot.eclipse.org"
+
 
 class MqttConnector:
     """Responsible for mqtt pub/sub"""
@@ -20,7 +26,6 @@ class MqttConnector:
             self.client.subscribe(topic)
 
     # The callback for when a PUBLISH message is received from the server.
-
     def on_message(self, client, userdata, msg):
         self.onMessageReceived(msg.topic, msg.payload)
 
@@ -35,15 +40,10 @@ class MqttConnector:
         self.client.on_message = self.on_message
 
         self.connect()
-
-        # Blocking call that processes network traffic, dispatches callbacks and
-        # handles reconnecting.
-        # Other loop*() functions are available that give a threaded interface and a
-        # manual interface.
         self.client.loop_start()
 
     def connect(self):
-        self.client.connect("iot.eclipse.org", 1883, 60)
+        self.client.connect(HOST, PORT, KEEPALIVE_SECONDS)
 
     def publish(self, channel, message):
-        publish.single(channel, message, hostname="iot.eclipse.org")
+        publish.single(channel, message, hostname=HOST)
