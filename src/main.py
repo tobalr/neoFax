@@ -8,7 +8,7 @@ def printPairingQR(pairingId):
 
 communicationManager = CommunicationManager()
 sleep(2)
-pairingId = communicationManager.openNewPairing()
+pairingId = communicationManager.openForPairRequests()
 printPairingQR(pairingId)
 
 while True:

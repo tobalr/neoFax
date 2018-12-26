@@ -46,4 +46,5 @@ class MqttConnector:
         self.client.connect(HOST, PORT, KEEPALIVE_SECONDS)
 
     def publish(self, channel, message):
+        print("Publish to channel: " + channel + " Msg:\n" + str(message))
         publish.single(channel, message, hostname=HOST)
