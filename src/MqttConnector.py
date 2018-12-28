@@ -7,7 +7,7 @@ KEEPALIVE_SECONDS = 60
 
 PORT = 1883
 
-HOST = "iot.eclipse.org"
+HOST = "0.0.0.0"
 
 
 class MqttConnector:
@@ -59,4 +59,8 @@ class MqttConnector:
         topicPostfix = CommunicationHelper.getMsgStringType(messageType)
         fullChannel = channel + "/" + topicPostfix
         print("Publish to channel: " + fullChannel + " Msg:\n" + str(message))
-        publish.single(fullChannel, message, hostname=HOST, qos=2)
+        try:
+            result = publish.single(fullChannel, message, hostname=HOST, qos=2)
+            print(result)
+        except:
+            print("FAILED")

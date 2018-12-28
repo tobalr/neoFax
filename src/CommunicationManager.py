@@ -1,3 +1,7 @@
+from Crypto.Cipher import PKCS1_OAEP, AES
+from Crypto.Random import get_random_bytes
+from Crypto.PublicKey import RSA
+
 from CommunicationHelper import generateKeyPair, getMsgType, MsgType, getChannelId
 from Connection import Connection
 from MqttConnector import MqttConnector
@@ -29,9 +33,18 @@ class CommunicationManager:
     def getAllChannels(self):
         return self.getPairingChannels() + self.getCommunicationChannels()
 
-    def onMessageReceived(self, channel, msgType, message):
+    def onMessageReceived(self, channel, msgType, encMessage):
+        enc_session_key, nonce, tag, ciphertext = \
+            [encMessage.read(x) for x in (self.keyPair[1].size_in_bytes(), 16, 16, -1)]
+
+        cipher_rsa = PKCS1_OAEP.new(RSA.import_key(self.keyPair[1]))
+        session_key = cipher_rsa.decrypt(enc_session_key)
+
+        cipher_aes = AES.new(session_key, AES.MODE_EAX, nonce)
+        message = cipher_aes.decrypt_and_verify(ciphertext, tag)
+
         if msgType == MsgType.PairRequest:
-            self.onPairRequestReceieved(message)
+            self.onPairRequestReceived(message)
         elif msgType == MsgType.PairConfirm:
             self.onReceivePairConfirmation(channel, message)
         elif msgType == MsgType.TextMessage:
@@ -46,7 +59,7 @@ class CommunicationManager:
         self.addConnection(rxChannel, txChannel,
                            self.ongoingPairingRxPubKey)  # ToDo missing pubkey - must be receieved during pair
 
-    def onPairRequestReceieved(self, message):
+    def onPairRequestReceived(self, message):
         print("Received a pair request")
         pairRequest = pb_msg.PairRequest()
         pairRequest.ParseFromString(message)
@@ -56,7 +69,8 @@ class CommunicationManager:
         pairConfirm = pb_msg.PairConfirm()
         pairConfirm.receiving_topic = rxChannel
         serializedMessage = pairConfirm.SerializeToString()
-        self.mqttConnector.publish(txChannel, serializedMessage, MsgType.PairConfirm)
+        tempConnection = Connection(rxChannel, txChannel, pairRequest.pubKey)
+        self.send(tempConnection, serializedMessage, MsgType.PairConfirm)
 
     def getPublicKey(self):
         return str(self.keyPair[0].decode("utf-8"))
@@ -76,7 +90,8 @@ class CommunicationManager:
         pairRequest.receiving_topic = rxChannel
         pairRequest.pubKey = self.getPublicKey()
         pairRequestMessage = pairRequest.SerializeToString()
-        self.mqttConnector.publish(pairId, pairRequestMessage, MsgType.PairRequest)
+        tempConnection = Connection(rxChannel, pairId, pubKey)
+        self.send(tempConnection, pairRequestMessage, MsgType.PairRequest)
 
     def sendTextMessage(self, connection, textMessage):
         msg = pb_msg.TextMessage()
@@ -85,7 +100,12 @@ class CommunicationManager:
         self.send(connection, serializedMessage, MsgType.TextMessage)
 
     def send(self, connection, serializedMessage, msgType):
-        self.mqttConnector.publish(connection.txChannel, serializedMessage, msgType)
+        session_key = get_random_bytes(16)
+        cipher_rsa = PKCS1_OAEP.new(RSA.import_key(connection.pubKey))
+        enc_session_key = cipher_rsa.encrypt(session_key)
+        cipher_aes = AES.new(session_key, AES.MODE_EAX)
+        ciphertext, tag = cipher_aes.encrypt_and_digest(serializedMessage)
+        self.mqttConnector.publish(connection.txChannel, (enc_session_key, cipher_aes.nonce, tag, ciphertext), msgType)
 
     def subscribeToPairingChannel(self, pairingChannel):
         print("Subscribing to pairing channel=" + pairingChannel)
