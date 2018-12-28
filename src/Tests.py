@@ -14,7 +14,7 @@ class Tests(unittest.TestCase):
 
         remote = CommunicationManager()
         remote.pair(pairingId)
-        sleep(2)
+        sleep(20)
 
         for key, value in fax.connections.items():
             faxConnection = value

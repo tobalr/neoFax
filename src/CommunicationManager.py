@@ -1,4 +1,3 @@
-import CommunicationHelper
 from CommunicationHelper import generateKeyPair, getMsgType, MsgType, getChannelId
 from Connection import Connection
 from MqttConnector import MqttConnector
@@ -6,14 +5,13 @@ import gen.messages_pb2 as pb_msg
 
 
 class CommunicationManager:
-    keyPair = None
-    mqttConnector = None
-    connections = {}
-    pairingChannels = []
+
 
     def __init__(self):
         self.keyPair = self.getKeyPair()
         self.mqttConnector = MqttConnector(self.onMessageReceived)
+        self.connections = {}
+        self.pairingChannels = []
 
     def getKeyPair(self):
         return generateKeyPair()
@@ -34,12 +32,16 @@ class CommunicationManager:
         if msgType == MsgType.PairRequest:
             self.onPairRequestReceieved(message)
         elif msgType == MsgType.PairConfirm:
-            print("Received a pairing confirmation")
-            pairConfirm = pb_msg.PairConfirm()
-            pairConfirm.ParseFromString(message)
-            txChannel = pairConfirm.receiving_topic
-            rxChannel = channel
-            self.addConnection(rxChannel, txChannel, pairConfirm.pubKey) #ToDo missing pubkey - must be receieved during pair
+            self.onReceivePairConfirmation(channel, message)
+
+    def onReceivePairConfirmation(self, channel, message):
+        print("Received a pairing confirmation")
+        pairConfirm = pb_msg.PairConfirm()
+        pairConfirm.ParseFromString(message)
+        txChannel = pairConfirm.receiving_topic
+        rxChannel = channel
+        self.addConnection(rxChannel, txChannel,
+                           None)  # ToDo missing pubkey - must be receieved during pair
 
     def onPairRequestReceieved(self, message):
         print("Received a pair request")
