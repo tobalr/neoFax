@@ -41,7 +41,7 @@ class CommunicationManager:
         txChannel = pairConfirm.receiving_topic
         rxChannel = channel
         self.addConnection(rxChannel, txChannel,
-                           None)  # ToDo missing pubkey - must be receieved during pair
+                           self.ongoingPairingRxPubKey)  # ToDo missing pubkey - must be receieved during pair
 
     def onPairRequestReceieved(self, message):
         print("Received a pair request")
@@ -55,14 +55,18 @@ class CommunicationManager:
         serializedMessage = pairConfirm.SerializeToString()
         self.mqttConnector.publish(txChannel, serializedMessage, MsgType.PairConfirm)
 
+    def getPublicKey(self):
+        return self.keyPair[0]
+
     def openForPairRequests(self):
         print("Open for pair requests")
         pairChannelId = getChannelId()
         self.subscribeToPairingChannel(pairChannelId)
         return pairChannelId
 
-    def pair(self, pairId):
+    def pair(self, pairId, pubKey):
         print("Pairing with: " + pairId)
+        self.ongoingPairingRxPubKey = pubKey
         rxChannel = getChannelId()
         self.subscribeToPairingChannel(rxChannel)
         pairRequest = pb_msg.PairRequest()
