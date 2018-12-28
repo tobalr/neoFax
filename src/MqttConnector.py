@@ -7,7 +7,8 @@ KEEPALIVE_SECONDS = 60
 
 PORT = 1883
 
-HOST = "iot.eclipse.org"
+# HOST = "iot.eclipse.org"
+HOST = "0.0.0.0"
 
 
 class MqttConnector:
