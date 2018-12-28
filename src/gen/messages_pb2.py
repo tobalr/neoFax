@@ -19,11 +19,77 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='messages.proto',
   package='',
   syntax='proto3',
-  serialized_pb=_b('\n\x0emessages.proto\"6\n\x0bPairRequest\x12\x0e\n\x06pubKey\x18\x01 \x01(\t\x12\x17\n\x0freceiving_topic\x18\x02 \x01(\t\"&\n\x0bPairConfirm\x12\x17\n\x0freceiving_topic\x18\x01 \x01(\t\"\t\n\x07getInfo\"&\n\x07\x46\x61xInfo\x12\x0c\n\x04name\x18\x01 \x01(\t\x12\r\n\x05model\x18\x02 \x01(\t\"\x1a\n\nClientInfo\x12\x0c\n\x04name\x18\x01 \x01(\t\"\x1e\n\x0bTextMessage\x12\x0f\n\x07\x63ontent\x18\x01 \x01(\tb\x06proto3')
+  serialized_pb=_b('\n\x0emessages.proto\"\x85\x01\n\x11\x45ncryptionWrapper\x12\x1d\n\x15\x65ncrypted_session_key\x18\x01 \x01(\x0c\x12\r\n\x05nonce\x18\x02 \x01(\x0c\x12\x0b\n\x03tag\x18\x03 \x01(\x0c\x12\x13\n\x0b\x63ipher_text\x18\x04 \x01(\x0c\x12\x0f\n\x07version\x18\x05 \x01(\x05\x12\x0f\n\x07msgType\x18\x06 \x01(\x05\"6\n\x0bPairRequest\x12\x0e\n\x06pubKey\x18\x01 \x01(\t\x12\x17\n\x0freceiving_topic\x18\x02 \x01(\t\"&\n\x0bPairConfirm\x12\x17\n\x0freceiving_topic\x18\x01 \x01(\t\"\t\n\x07getInfo\"&\n\x07\x46\x61xInfo\x12\x0c\n\x04name\x18\x01 \x01(\t\x12\r\n\x05model\x18\x02 \x01(\t\"\x1a\n\nClientInfo\x12\x0c\n\x04name\x18\x01 \x01(\t\"\x1e\n\x0bTextMessage\x12\x0f\n\x07\x63ontent\x18\x01 \x01(\tb\x06proto3')
 )
 _sym_db.RegisterFileDescriptor(DESCRIPTOR)
 
 
+
+
+_ENCRYPTIONWRAPPER = _descriptor.Descriptor(
+  name='EncryptionWrapper',
+  full_name='EncryptionWrapper',
+  filename=None,
+  file=DESCRIPTOR,
+  containing_type=None,
+  fields=[
+    _descriptor.FieldDescriptor(
+      name='encrypted_session_key', full_name='EncryptionWrapper.encrypted_session_key', index=0,
+      number=1, type=12, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b(""),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='nonce', full_name='EncryptionWrapper.nonce', index=1,
+      number=2, type=12, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b(""),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='tag', full_name='EncryptionWrapper.tag', index=2,
+      number=3, type=12, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b(""),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='cipher_text', full_name='EncryptionWrapper.cipher_text', index=3,
+      number=4, type=12, cpp_type=9, label=1,
+      has_default_value=False, default_value=_b(""),
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='version', full_name='EncryptionWrapper.version', index=4,
+      number=5, type=5, cpp_type=1, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+    _descriptor.FieldDescriptor(
+      name='msgType', full_name='EncryptionWrapper.msgType', index=5,
+      number=6, type=5, cpp_type=1, label=1,
+      has_default_value=False, default_value=0,
+      message_type=None, enum_type=None, containing_type=None,
+      is_extension=False, extension_scope=None,
+      options=None),
+  ],
+  extensions=[
+  ],
+  nested_types=[],
+  enum_types=[
+  ],
+  options=None,
+  is_extendable=False,
+  syntax='proto3',
+  extension_ranges=[],
+  oneofs=[
+  ],
+  serialized_start=19,
+  serialized_end=152,
+)
 
 
 _PAIRREQUEST = _descriptor.Descriptor(
@@ -59,8 +125,8 @@ _PAIRREQUEST = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=18,
-  serialized_end=72,
+  serialized_start=154,
+  serialized_end=208,
 )
 
 
@@ -90,8 +156,8 @@ _PAIRCONFIRM = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=74,
-  serialized_end=112,
+  serialized_start=210,
+  serialized_end=248,
 )
 
 
@@ -114,8 +180,8 @@ _GETINFO = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=114,
-  serialized_end=123,
+  serialized_start=250,
+  serialized_end=259,
 )
 
 
@@ -152,8 +218,8 @@ _FAXINFO = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=125,
-  serialized_end=163,
+  serialized_start=261,
+  serialized_end=299,
 )
 
 
@@ -183,8 +249,8 @@ _CLIENTINFO = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=165,
-  serialized_end=191,
+  serialized_start=301,
+  serialized_end=327,
 )
 
 
@@ -214,16 +280,24 @@ _TEXTMESSAGE = _descriptor.Descriptor(
   extension_ranges=[],
   oneofs=[
   ],
-  serialized_start=193,
-  serialized_end=223,
+  serialized_start=329,
+  serialized_end=359,
 )
 
+DESCRIPTOR.message_types_by_name['EncryptionWrapper'] = _ENCRYPTIONWRAPPER
 DESCRIPTOR.message_types_by_name['PairRequest'] = _PAIRREQUEST
 DESCRIPTOR.message_types_by_name['PairConfirm'] = _PAIRCONFIRM
 DESCRIPTOR.message_types_by_name['getInfo'] = _GETINFO
 DESCRIPTOR.message_types_by_name['FaxInfo'] = _FAXINFO
 DESCRIPTOR.message_types_by_name['ClientInfo'] = _CLIENTINFO
 DESCRIPTOR.message_types_by_name['TextMessage'] = _TEXTMESSAGE
+
+EncryptionWrapper = _reflection.GeneratedProtocolMessageType('EncryptionWrapper', (_message.Message,), dict(
+  DESCRIPTOR = _ENCRYPTIONWRAPPER,
+  __module__ = 'messages_pb2'
+  # @@protoc_insertion_point(class_scope:EncryptionWrapper)
+  ))
+_sym_db.RegisterMessage(EncryptionWrapper)
 
 PairRequest = _reflection.GeneratedProtocolMessageType('PairRequest', (_message.Message,), dict(
   DESCRIPTOR = _PAIRREQUEST,

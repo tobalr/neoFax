@@ -1,5 +1,14 @@
 syntax = "proto3";
 
+message EncryptionWrapper {
+  bytes encrypted_session_key = 1;
+  bytes nonce = 2;
+  bytes tag = 3;
+  bytes cipher_text = 4;
+  int32 version = 5;
+  int32 msgType = 6;
+}
+
 message PairRequest {
   string pubKey = 1;
   string receiving_topic = 2;
