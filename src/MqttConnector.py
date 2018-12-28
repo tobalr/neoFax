@@ -56,7 +56,7 @@ class MqttConnector:
         self.client.connect(HOST, PORT, KEEPALIVE_SECONDS)
 
     def publish(self, channel, message, messageType):
-        topicPostfix = CommunicationHelper.getMsgTopic(messageType)
+        topicPostfix = CommunicationHelper.getMsgStringType(messageType)
         fullChannel = channel + "/" + topicPostfix
         print("Publish to channel: " + fullChannel + " Msg:\n" + str(message))
         publish.single(fullChannel, message, hostname=HOST, qos=2)

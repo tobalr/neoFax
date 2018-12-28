@@ -46,10 +46,10 @@ def getChannelId():
     return str(uuid.uuid4())
 
 
-def getMsgType(topic):
-    return stringToType[topic]
+def getMsgType(stringType):
+    return stringToType[stringType]
 
 
-def getMsgTopic(msgType):
+def getMsgStringType(msgType):
     return typeToString[msgType]
 

@@ -1,34 +1,31 @@
 import unittest
 
-import CommunicationHelper
+from CommunicationHelper import MsgType
 from CommunicationManager import CommunicationManager
 from time import sleep
 import gen.messages_pb2 as pb_msg
 
+NAPTIME=1
 
 class Tests(unittest.TestCase):
-
-
 
     def testPairing(self):
         # Start client1 and open for pairing
         fax = CommunicationManager(self.onTestMsgReceived)
-        sleep(2)
+        sleep(NAPTIME)
         pubKeyFax = fax.getPublicKey()
         pairingId = fax.openForPairRequests()
 
         remote = CommunicationManager(self.onTestMsgReceived)
         pubKeyRemote = remote.getPublicKey()
         remote.pair(pairingId, pubKeyFax)
-        sleep(2)
+        sleep(NAPTIME)
 
         for key, value in fax.connections.items():
             faxConnection = value
 
-
         for key, value in remote.connections.items():
             remoteConnection = value
-
 
         txFax = faxConnection.txChannel
         rxRemote = remoteConnection.rxChannel
@@ -52,27 +49,25 @@ class Tests(unittest.TestCase):
         remote = CommunicationManager(None)
         remote.pair(pairingId, pubKeyFax)
 
-        sleep(2)
+        sleep(NAPTIME)
 
         for key, value in remote.connections.items():
             remoteConnection = value
 
         textSent = "Hello World"
         remote.sendTextMessage(remoteConnection, textSent)
-        sleep(2)
+        sleep(NAPTIME)
         self.assertEqual(textSent, self.textReceived)
 
-
-
-    def onTestMsgReceived(self, message, msgType):
-        if(msgType == CommunicationHelper.MsgType.TextMessage):
+    def onTestMsgReceived(self, serializedMessage, msgType):
+        if msgType == MsgType.TextMessage:
             textMessage = pb_msg.TextMessage()
-            textMessage = textMessage.ParseFromString(message)
-            self.textReceived = textMessage.message
+            textMessage.ParseFromString(serializedMessage)
+            print(textMessage)
+            self.textReceived = textMessage.content
+            print(self.textReceived)
     #
     #
-
-
 
 
 if __name__ == '__main__':

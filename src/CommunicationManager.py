@@ -6,7 +6,6 @@ import gen.messages_pb2 as pb_msg
 
 class CommunicationManager:
 
-
     def __init__(self, onPrintMessageReceivedCallback):
         self.printMessageCallback = onPrintMessageReceivedCallback
         self.keyPair = self.getKeyPair()
@@ -18,17 +17,17 @@ class CommunicationManager:
     def getKeyPair(self):
         return generateKeyPair()
 
-    def getPairingTopics(self):
+    def getPairingChannels(self):
         return self.pairingChannels
 
     def getCommunicationChannels(self):
         rxChannels = []
-        for connection in self.connections:
-            rxChannels.append(connection.rxChannel)
+        for rxChannel in self.connections.keys():
+            rxChannels.append(rxChannel)
         return rxChannels
 
     def getAllChannels(self):
-        return self.getPairingTopics() + self.getCommunicationChannels()
+        return self.getPairingChannels() + self.getCommunicationChannels()
 
     def onMessageReceived(self, channel, msgType, message):
         if msgType == MsgType.PairRequest:
@@ -81,13 +80,12 @@ class CommunicationManager:
 
     def sendTextMessage(self, connection, textMessage):
         msg = pb_msg.TextMessage()
-        msg.message = textMessage
+        msg.content = textMessage
         serializedMessage = msg.SerializeToString()
-        self.send(connection, serializedMessage, MsgType.PairConfirm)
+        self.send(connection, serializedMessage, MsgType.TextMessage)
 
     def send(self, connection, serializedMessage, msgType):
-        self.mqttConnector.publish(connection.txChannel, serializedMessage, MsgType.PairConfirm)
-
+        self.mqttConnector.publish(connection.txChannel, serializedMessage, msgType)
 
     def subscribeToPairingChannel(self, pairingChannel):
         print("Subscribing to pairing channel=" + pairingChannel)
@@ -95,12 +93,14 @@ class CommunicationManager:
         self.updateSubscriptions()
 
     def updateSubscriptions(self):
-        self.mqttConnector.updateSubscriptions(self.getAllChannels())
+        channels = self.getAllChannels()
+        self.mqttConnector.updateSubscriptions(channels)
 
     def addConnection(self, rxChannel, txChannel, pubKeyClient):
         connection = Connection(rxChannel, txChannel, pubKeyClient)
         self.connections[rxChannel] = connection
         print("A new connection has been added. \n"
               "RxChannel=" + connection.rxChannel + "\n"
-              "TxChannel=" + connection.txChannel + "\n"
-              "TxPubKey=" + connection.pubKey)
+                                                    "TxChannel=" + connection.txChannel + "\n"
+                                                                                          "TxPubKey=" + connection.pubKey)
+        self.updateSubscriptions()

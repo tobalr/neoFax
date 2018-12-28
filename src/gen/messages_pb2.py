@@ -19,7 +19,7 @@ DESCRIPTOR = _descriptor.FileDescriptor(
   name='messages.proto',
   package='',
   syntax='proto3',
-  serialized_pb=_b('\n\x0emessages.proto\"6\n\x0bPairRequest\x12\x0e\n\x06pubKey\x18\x01 \x01(\t\x12\x17\n\x0freceiving_topic\x18\x02 \x01(\t\"&\n\x0bPairConfirm\x12\x17\n\x0freceiving_topic\x18\x01 \x01(\t\"\t\n\x07getInfo\"&\n\x07\x46\x61xInfo\x12\x0c\n\x04name\x18\x01 \x01(\t\x12\r\n\x05model\x18\x02 \x01(\t\"\x1a\n\nClientInfo\x12\x0c\n\x04name\x18\x01 \x01(\t\"\x1e\n\x0bTextMessage\x12\x0f\n\x07message\x18\x01 \x01(\tb\x06proto3')
+  serialized_pb=_b('\n\x0emessages.proto\"6\n\x0bPairRequest\x12\x0e\n\x06pubKey\x18\x01 \x01(\t\x12\x17\n\x0freceiving_topic\x18\x02 \x01(\t\"&\n\x0bPairConfirm\x12\x17\n\x0freceiving_topic\x18\x01 \x01(\t\"\t\n\x07getInfo\"&\n\x07\x46\x61xInfo\x12\x0c\n\x04name\x18\x01 \x01(\t\x12\r\n\x05model\x18\x02 \x01(\t\"\x1a\n\nClientInfo\x12\x0c\n\x04name\x18\x01 \x01(\t\"\x1e\n\x0bTextMessage\x12\x0f\n\x07\x63ontent\x18\x01 \x01(\tb\x06proto3')
 )
 _sym_db.RegisterFileDescriptor(DESCRIPTOR)
 
@@ -196,7 +196,7 @@ _TEXTMESSAGE = _descriptor.Descriptor(
   containing_type=None,
   fields=[
     _descriptor.FieldDescriptor(
-      name='message', full_name='TextMessage.message', index=0,
+      name='content', full_name='TextMessage.content', index=0,
       number=1, type=9, cpp_type=9, label=1,
       has_default_value=False, default_value=_b("").decode('utf-8'),
       message_type=None, enum_type=None, containing_type=None,
