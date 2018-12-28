@@ -5,7 +5,7 @@ from CommunicationManager import CommunicationManager
 from time import sleep
 import gen.messages_pb2 as pb_msg
 
-NAPTIME=1
+NAPTIME=2
 
 class Tests(unittest.TestCase):
 

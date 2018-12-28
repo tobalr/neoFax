@@ -1,7 +1,4 @@
-from Crypto.Cipher import PKCS1_OAEP, AES
-from Crypto.Random import get_random_bytes
-from Crypto.PublicKey import RSA
-
+import EncryptionHelper
 from CommunicationHelper import generateKeyPair, getMsgType, MsgType, getChannelId
 from Connection import Connection
 from MqttConnector import MqttConnector
@@ -34,14 +31,7 @@ class CommunicationManager:
         return self.getPairingChannels() + self.getCommunicationChannels()
 
     def onMessageReceived(self, channel, msgType, encMessage):
-        enc_session_key, nonce, tag, ciphertext = \
-            [encMessage.read(x) for x in (self.keyPair[1].size_in_bytes(), 16, 16, -1)]
-
-        cipher_rsa = PKCS1_OAEP.new(RSA.import_key(self.keyPair[1]))
-        session_key = cipher_rsa.decrypt(enc_session_key)
-
-        cipher_aes = AES.new(session_key, AES.MODE_EAX, nonce)
-        message = cipher_aes.decrypt_and_verify(ciphertext, tag)
+        message = EncryptionHelper.decrypt(encMessage, self.keyPair[1])
 
         if msgType == MsgType.PairRequest:
             self.onPairRequestReceived(message)
@@ -100,12 +90,8 @@ class CommunicationManager:
         self.send(connection, serializedMessage, MsgType.TextMessage)
 
     def send(self, connection, serializedMessage, msgType):
-        session_key = get_random_bytes(16)
-        cipher_rsa = PKCS1_OAEP.new(RSA.import_key(connection.pubKey))
-        enc_session_key = cipher_rsa.encrypt(session_key)
-        cipher_aes = AES.new(session_key, AES.MODE_EAX)
-        ciphertext, tag = cipher_aes.encrypt_and_digest(serializedMessage)
-        self.mqttConnector.publish(connection.txChannel, (enc_session_key, cipher_aes.nonce, tag, ciphertext), msgType)
+        data = EncryptionHelper.encrypt(serializedMessage, connection.pubKey)
+        self.mqttConnector.publish(connection.txChannel, data, msgType)
 
     def subscribeToPairingChannel(self, pairingChannel):
         print("Subscribing to pairing channel=" + pairingChannel)
