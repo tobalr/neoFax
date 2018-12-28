@@ -7,8 +7,10 @@ import gen.messages_pb2 as pb_msg
 class CommunicationManager:
 
 
-    def __init__(self):
+    def __init__(self, onPrintMessageReceivedCallback):
+        self.printMessageCallback = onPrintMessageReceivedCallback
         self.keyPair = self.getKeyPair()
+        self.ongoingPairingRxPubKey = None
         self.mqttConnector = MqttConnector(self.onMessageReceived)
         self.connections = {}
         self.pairingChannels = []
@@ -33,6 +35,8 @@ class CommunicationManager:
             self.onPairRequestReceieved(message)
         elif msgType == MsgType.PairConfirm:
             self.onReceivePairConfirmation(channel, message)
+        elif msgType == MsgType.TextMessage:
+            self.printMessageCallback(message, msgType)
 
     def onReceivePairConfirmation(self, channel, message):
         print("Received a pairing confirmation")
@@ -56,7 +60,7 @@ class CommunicationManager:
         self.mqttConnector.publish(txChannel, serializedMessage, MsgType.PairConfirm)
 
     def getPublicKey(self):
-        return self.keyPair[0]
+        return str(self.keyPair[0].decode("utf-8"))
 
     def openForPairRequests(self):
         print("Open for pair requests")
@@ -71,9 +75,19 @@ class CommunicationManager:
         self.subscribeToPairingChannel(rxChannel)
         pairRequest = pb_msg.PairRequest()
         pairRequest.receiving_topic = rxChannel
-        pairRequest.pubKey = self.keyPair[0]
+        pairRequest.pubKey = self.getPublicKey()
         pairRequestMessage = pairRequest.SerializeToString()
         self.mqttConnector.publish(pairId, pairRequestMessage, MsgType.PairRequest)
+
+    def sendTextMessage(self, connection, textMessage):
+        msg = pb_msg.TextMessage()
+        msg.message = textMessage
+        serializedMessage = msg.SerializeToString()
+        self.send(connection, serializedMessage, MsgType.PairConfirm)
+
+    def send(self, connection, serializedMessage, msgType):
+        self.mqttConnector.publish(connection.txChannel, serializedMessage, MsgType.PairConfirm)
+
 
     def subscribeToPairingChannel(self, pairingChannel):
         print("Subscribing to pairing channel=" + pairingChannel)

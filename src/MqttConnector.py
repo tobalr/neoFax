@@ -22,6 +22,9 @@ class MqttConnector:
 
         # Subscribing in on_connect() means that if we lose the connection and
         # reconnect then subscriptions will be renewed.
+        self.subscribeToAllTopics()
+
+    def subscribeToAllTopics(self):
         print("Now listening on: ")
         for topic in self.topics:
             fullTopic = topic + "/#"
@@ -47,7 +50,7 @@ class MqttConnector:
 
     def updateSubscriptions(self, topics):
         self.topics = topics
-        self.client.reconnect()
+        self.subscribeToAllTopics()
 
     def connect(self):
         self.client.connect(HOST, PORT, KEEPALIVE_SECONDS)
@@ -56,4 +59,4 @@ class MqttConnector:
         topicPostfix = CommunicationHelper.getMsgTopic(messageType)
         fullChannel = channel + "/" + topicPostfix
         print("Publish to channel: " + fullChannel + " Msg:\n" + str(message))
-        publish.single(fullChannel, message, hostname=HOST)
+        publish.single(fullChannel, message, hostname=HOST, qos=2)
