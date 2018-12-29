@@ -6,11 +6,12 @@ message EncryptionWrapper {
   bytes tag = 3;
   bytes cipher_text = 4;
   int32 version = 5;
-  int32 msgType = 6;
+  int32 msg_type = 6;
+  bytes signature = 7;
 }
 
 message PairRequest {
-  string pubKey = 1;
+  string pub_key = 1;
   string receiving_topic = 2;
 }
 
@@ -18,7 +19,7 @@ message PairConfirm {
   string receiving_topic = 1;
 }
 
-message getInfo{}
+message GetInfo{}
 
 message FaxInfo {
   string name = 1;

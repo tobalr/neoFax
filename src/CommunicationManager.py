@@ -10,10 +10,10 @@ class CommunicationManager:
     def __init__(self, onPrintMessageReceivedCallback):
         self.printMessageCallback = onPrintMessageReceivedCallback
         self.keyPair = self.getKeyPair()
-        self.ongoingPairingRxPubKey = None
         self.mqttConnector = MqttConnector(self.onMessageReceived)
         self.connections = {}
         self.pairingChannels = []
+        self.tempConnection = None
 
     def getKeyPair(self):
         return generateKeyPair()
@@ -31,7 +31,13 @@ class CommunicationManager:
         return self.getPairingChannels() + self.getCommunicationChannels()
 
     def onMessageReceived(self, channel, msgType, encMessage):
-        message = EncryptionHelper.decrypt(encMessage, self.keyPair[1])
+        if channel in self.connections:
+            connection = self.connections[channel]
+        elif self.tempConnection is not None and self.tempConnection.pubKey is not None:
+            connection = self.tempConnection
+        else:
+            connection = None
+        message = EncryptionHelper.decrypt(encMessage, connection, self.keyPair[1])
 
         if msgType == MsgType.PairRequest:
             self.onPairRequestReceived(message)
@@ -44,10 +50,8 @@ class CommunicationManager:
         print("Received a pairing confirmation")
         pairConfirm = pb_msg.PairConfirm()
         pairConfirm.ParseFromString(message)
-        txChannel = pairConfirm.receiving_topic
-        rxChannel = channel
-        self.addConnection(rxChannel, txChannel,
-                           self.ongoingPairingRxPubKey)  # ToDo missing pubkey - must be receieved during pair
+        self.tempConnection.txChannel = pairConfirm.receiving_topic
+        self.addConnection(self.tempConnection)
 
     def onPairRequestReceived(self, message):
         print("Received a pair request")
@@ -55,12 +59,11 @@ class CommunicationManager:
         pairRequest.ParseFromString(message)
         txChannel = pairRequest.receiving_topic
         rxChannel = getChannelId()
-        self.addConnection(rxChannel, txChannel, pairRequest.pubKey)
+        connection = self.addConnection(Connection(rxChannel, txChannel, pairRequest.pub_key))
         pairConfirm = pb_msg.PairConfirm()
         pairConfirm.receiving_topic = rxChannel
         serializedMessage = pairConfirm.SerializeToString()
-        tempConnection = Connection(rxChannel, txChannel, pairRequest.pubKey)
-        self.send(tempConnection, serializedMessage, MsgType.PairConfirm)
+        self.send(connection, serializedMessage, MsgType.PairConfirm)
 
     def getPublicKey(self):
         return str(self.keyPair[0].decode("utf-8"))
@@ -71,17 +74,16 @@ class CommunicationManager:
         self.subscribeToPairingChannel(pairChannelId)
         return pairChannelId
 
-    def pair(self, pairId, pubKey):
-        print("Pairing with: " + pairId)
-        self.ongoingPairingRxPubKey = pubKey
+    def pair(self, txPairChannel, pubKey):
+        print("Pairing with: " + txPairChannel)
         rxChannel = getChannelId()
         self.subscribeToPairingChannel(rxChannel)
         pairRequest = pb_msg.PairRequest()
         pairRequest.receiving_topic = rxChannel
-        pairRequest.pubKey = self.getPublicKey()
+        pairRequest.pub_key = self.getPublicKey()
         pairRequestMessage = pairRequest.SerializeToString()
-        tempConnection = Connection(rxChannel, pairId, pubKey)
-        self.send(tempConnection, pairRequestMessage, MsgType.PairRequest)
+        self.tempConnection = Connection(rxChannel, txPairChannel, pubKey)
+        self.send(self.tempConnection, pairRequestMessage, MsgType.PairRequest)
 
     def sendTextMessage(self, connection, textMessage):
         msg = pb_msg.TextMessage()
@@ -90,7 +92,7 @@ class CommunicationManager:
         self.send(connection, serializedMessage, MsgType.TextMessage)
 
     def send(self, connection, serializedMessage, msgType):
-        data = EncryptionHelper.encrypt(serializedMessage, connection.pubKey)
+        data = EncryptionHelper.encrypt(serializedMessage, connection, self.keyPair[1])
         self.mqttConnector.publish(connection.txChannel, data, msgType)
 
     def subscribeToPairingChannel(self, pairingChannel):
@@ -102,11 +104,11 @@ class CommunicationManager:
         channels = self.getAllChannels()
         self.mqttConnector.updateSubscriptions(channels)
 
-    def addConnection(self, rxChannel, txChannel, pubKeyClient):
-        connection = Connection(rxChannel, txChannel, pubKeyClient)
-        self.connections[rxChannel] = connection
+    def addConnection(self, connection):
+        self.connections[connection.rxChannel] = connection
         print("A new connection has been added. \n"
               "RxChannel=" + connection.rxChannel + "\n"
                                                     "TxChannel=" + connection.txChannel + "\n"
                                                                                           "TxPubKey=" + connection.pubKey)
         self.updateSubscriptions()
+        return connection
