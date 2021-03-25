@@ -13,7 +13,7 @@ protobuf==3.6.1
 pycodestyle==2.4.0
 pycryptodome==3.7.2
 pylint==2.2.2
-PyYAML==3.13
+PyYAML==5.4
 requests==2.21.0
 rope==0.11.0
 shellescape==3.4.1
